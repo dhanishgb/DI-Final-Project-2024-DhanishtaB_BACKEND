@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@sequelize/postgres": "^7.0.0-alpha.43",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express.js": "^1.0.0",
     "helmet": "^8.0.0",
