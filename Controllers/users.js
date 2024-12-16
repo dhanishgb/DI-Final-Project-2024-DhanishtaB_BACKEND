@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const User = require('../Models/Users'); // Assuming your User model is in the models folder
+const User = require('../Models/users'); // Assuming your User model is in the models folder
 
 // Register a new user
 exports.register = async (req, res) => {
