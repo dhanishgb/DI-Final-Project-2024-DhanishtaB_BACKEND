@@ -1,77 +1,63 @@
-const bcrypt = require('bcrypt');
-const User = require('../Models/users'); // Assuming your User model is in the models folder
+const { User } = require('../Models/users');
 
 // Register a new user
 exports.register = async (req, res) => {
     try {
-        const { email, password, username } = req.body;
-
-        // Validate input
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required.' });
-        }
+        const { username, email, password } = req.body;
 
         // Check if the user already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ error: 'Email is already registered.' });
+            return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create a new user
-        const newUser = await User.create({
+        // Create a new user (no password hashing)
+        const user = await User.create({
+            username,
             email,
-            username: username || null, // Optional username
-            password: hashedPassword,
+            password, // Save password as-is (insecure)
         });
 
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+        res.status(201).json({ message: 'User registered successfully', user });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
-// Log in an existing user
-exports.login = async (req, res) => {
+// Sign in a user
+exports.signin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required.' });
-        }
-
-        // Find the user
+        // Find user by email
         const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(400).json({ error: 'Invalid email or password.' });
+        if (!user || user.password !== password) { // Compare plain text passwords
+            return res.status(400).json({ message: 'Invalid email or password' });
         }
 
-        // Compare passwords
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ error: 'Invalid email or password.' });
-        }
-
-        res.status(200).json({ message: 'User logged in successfully', user });
+        // Send success response with user details
+        res.status(200).json({
+            message: 'Signin successful',
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                type: user.type,
+            },
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
-// Fetch all users
+// Get all users
 exports.allUsers = async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: { exclude: ['password'] }, // Exclude passwords from the response
+            attributes: { exclude: ['password'] }, // Exclude passwords
         });
-        res.status(200).json({ users });
+        res.status(200).json(users);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

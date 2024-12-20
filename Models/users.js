@@ -1,5 +1,4 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const bcrypt = require('bcrypt');
 
 // Set up database connection
 const db = new Sequelize('postgresql://class143_owner:BThOV0lZb3YU@ep-holy-lab-a2xm39f8.eu-central-1.aws.neon.tech/FitnessPlanet?sslmode=require');
@@ -14,9 +13,8 @@ const User = db.define('User', {
     username: {
         type: DataTypes.STRING,
         allowNull: true, // Allow optional username
-        unique: false, // Allow multiple users to not have a username
         validate: {
-            len: [3, 50], // Optional: Set length constraints for username
+            len: [3, 50], // Set length constraints for username
         },
     },
     email: {
@@ -36,16 +34,18 @@ const User = db.define('User', {
         type: DataTypes.STRING,
         defaultValue: 'user', // Default role for new users
     },
+}, {
+    timestamps: true, // Enable createdAt and updatedAt fields
 });
 
 // Sync database
-db.sync()
+db.sync({ alter: true })
     .then(() => {
-        console.log('User table created (if it does not already exist).');
+        console.log('User table synced successfully.');
     })
     .catch((error) => {
-        console.error('Error creating table:', error);
+        console.error('Error syncing table:', error);
     });
 
-// Export User model
-module.exports = User;
+// Export User model and database instance
+module.exports = { User, db };
